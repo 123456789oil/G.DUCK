@@ -1,0 +1,36 @@
+.styleguide-menu {
+  display: none;
+}
+
+#main-outlet-wrapper {
+  width: 100vw;
+}
+
+.styleguide {
+  display: block !important;
+}
+
+.d-form {
+  max-width: 100%;
+  overflow: hidden;
+
+  &__footer {
+    justify-content: flex-end;
+
+    .btn-primary {
+      order: 1;
+    }
+  }
+
+  &__secondary-cta {
+    order: -1;
+    margin-right: auto;
+    margin-left: 0;
+  }
+}
+
+.d-form-field {
+  &__value {
+    width: 100%;
+  }
+}

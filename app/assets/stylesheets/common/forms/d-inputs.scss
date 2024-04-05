@@ -1,0 +1,263 @@
+.d-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    &.--inline {
+      display: grid;
+      grid-auto-flow: column;
+      column-gap: 0.5em;
+      row-gap: 0.25em;
+      grid-template-columns: auto;
+      grid-template-rows: auto 1fr auto;
+
+      &.--3-col {
+        grid-template-columns: repeat(2, 1fr) auto;
+      }
+
+      &.--4-col {
+        grid-template-columns: repeat(3, 1fr) auto;
+      }
+    }
+    &.--ltr {
+      display: grid;
+      grid-template-columns: auto 3fr;
+      grid-template-rows: auto;
+      grid-column-gap: 1em;
+      grid-row-gap: 1em;
+    }
+    &.--rows {
+      gap: 0.5em;
+    }
+  }
+
+  &__multi-section {
+    display: grid;
+    row-gap: 0.25em;
+
+    .--inline {
+      grid-template-rows: auto 1fr;
+      &:not(:first-child) {
+        grid-template-rows: 1fr;
+
+        .d-form__section-inline-btn {
+          grid-row: 1;
+        }
+      }
+    }
+  }
+
+  &__secondary-cta {
+    margin-left: auto;
+  }
+
+  fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+  }
+
+  &__section-info {
+    margin: 0;
+  }
+
+  &__section-inline-btn {
+    height: 2em;
+    align-self: center;
+    justify-self: flex-start;
+
+    .--inline & {
+      grid-row: 2;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.d-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+
+  .--ltr & {
+    display: contents;
+
+    legend {
+      text-align: right;
+      margin: 0;
+    }
+  }
+
+  .--inline & {
+    display: contents;
+  }
+
+  &.--radiobtns,
+  &.--checkbox {
+    legend {
+      margin-bottom: 0.25em;
+    }
+  }
+
+  &__group {
+    display: flex;
+    gap: 0.5em;
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 0.25em;
+    margin: 0;
+    font-size: var(--font-down-1-rem);
+    color: var(--primary-high);
+
+    .--ltr & {
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    .--inline & {
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+  }
+  &__optional {
+    font-size: var(--font-down-2-rem);
+    color: var(--primary-medium);
+    font-weight: normal;
+  }
+  &__value {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    width: max-content;
+  }
+  &__value-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+
+    .--inline & {
+    }
+  }
+  &__input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+
+    label {
+      display: flex;
+      gap: 0.5em;
+      font-weight: normal;
+      margin: 0;
+    }
+  }
+  &__input[type="text"],
+  &__input[type="textarea"],
+  select {
+    background: var(--secondary);
+    border: 1px solid var(--primary-low-mid);
+    border-radius: var(--d-input-border-radius);
+    padding-inline: 0.5em;
+    height: 2em;
+    width: auto;
+    box-sizing: border-box;
+    margin: 0;
+
+    .has-error & {
+      border: 1px solid var(--danger);
+    }
+
+    .--inline & {
+      align-self: center;
+      width: 100%;
+    }
+
+    &:focus-visible {
+      border-color: var(--tertiary);
+      outline: 1px solid transparent;
+      box-shadow: 0 0 0 1px var(--tertiary);
+    }
+
+    &:hover {
+      border-color: var(--tertiary);
+    }
+
+    &[disabled] {
+      outline: none;
+      border: var(--d-input-border--disabled);
+      background-color: var(--d-input-bg-color--disabled);
+      cursor: not-allowed;
+    }
+  }
+
+  &__input[type="radio"],
+  &__input[type="checkbox"] {
+    margin: 0.17em 0 0;
+  }
+
+  &__info {
+    margin: 0 0 0.25em;
+    color: var(--primary-medium);
+    font-size: var(--font-down-1-rem);
+  }
+  &__meta {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: start;
+    gap: 0.25em;
+    font-size: var(--font-down-2-rem);
+    color: var(--primary-high);
+
+    &.--warning {
+      color: var(--danger);
+      justify-content: flex-start;
+    }
+  }
+
+  &__meta-text {
+    display: inline-flex;
+    margin: 0;
+
+    ol {
+      margin-block: 0;
+    }
+  }
+
+  &__character-count {
+    margin-left: auto;
+    .has-error & {
+      color: var(--danger);
+    }
+  }
+}
+
+//to include
+.d-form-multirow {
+  display: grid;
+  column-gap: 0.5em;
+  row-gap: 0.25em;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+
+  .d-form__section-inline-btn {
+    align-self: flex-end;
+  }
+}
+
+select {
+  .has-error & {
+    border: 1px solid var(--danger);
+  }
+}
