@@ -575,7 +575,10 @@ export default class ChatThread extends Component {
       />
 
       {{#if this.chatThreadPane.selectingMessages}}
-        <ChatSelectionManager @pane={{this.chatThreadPane}} />
+        <ChatSelectionManager
+          @pane={{this.chatThreadPane}}
+          @messagesManager={{this.messagesManager}}
+        />
       {{else}}
         <ChatComposerThread
           @channel={{@channel}}
