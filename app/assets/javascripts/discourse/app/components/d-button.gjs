@@ -5,7 +5,6 @@ import { service } from "@ember/service";
 import { htmlSafe } from "@ember/template";
 import { or } from "truth-helpers";
 import GlimmerComponentWithDeprecatedParentView from "discourse/components/glimmer-component-with-deprecated-parent-view";
-import concatClass from "discourse/helpers/concat-class";
 import icon from "discourse-common/helpers/d-icon";
 import deprecated from "discourse-common/lib/deprecated";
 import I18n from "discourse-i18n";
@@ -29,6 +28,22 @@ export default class DButton extends GlimmerComponentWithDeprecatedParentView {
     if (typeof this.args.action === "string") {
       deprecated(...ACTION_AS_STRING_DEPRECATION_ARGS);
     }
+  }
+
+  get buttonClasses() {
+    if (this.args.noAutoClass) {
+      return this.args.class || "";
+    }
+
+    let classes = [
+      this.args.isLoading ? "is-loading" : "",
+      this.btnLink ? "btn-link" : "btn",
+      this.noText ? "no-text" : "",
+      this.btnType || "",
+      this.args.class || "",
+    ];
+
+    return classes.join(" ");
   }
 
   get forceDisabled() {
@@ -154,14 +169,7 @@ export default class DButton extends GlimmerComponentWithDeprecatedParentView {
   <template>
     {{! template-lint-disable no-pointer-down-event-binding }}
     <this.wrapperElement
-      {{! For legacy compatibility. Prefer passing class as attributes. }}
-      class={{concatClass
-        @class
-        (if @isLoading "is-loading")
-        (if this.btnLink "btn-link" "btn")
-        (if this.noText "no-text")
-        this.btnType
-      }}
+      class={{this.buttonClasses}}
       {{! For legacy compatibility. Prefer passing these as html attributes. }}
       id={{@id}}
       form={{@form}}
