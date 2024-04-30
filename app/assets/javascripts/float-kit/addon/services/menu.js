@@ -1,7 +1,7 @@
 import { tracked } from "@glimmer/tracking";
 import { getOwner } from "@ember/application";
 import { action } from "@ember/object";
-import { next } from "@ember/runloop";
+import { schedule } from "@ember/runloop";
 import Service from "@ember/service";
 import { TrackedArray } from "@ember-compat/tracked-built-ins";
 import DMenuInstance from "float-kit/lib/d-menu-instance";
@@ -75,7 +75,7 @@ export default class Menu extends Service {
    * @param {DMenuInstance} [menu] - the menu to close, if not provider will close any active menu
    */
   @action
-  close(menu) {
+  async close(menu) {
     if (typeof menu === "string") {
       menu = this.registeredMenus.find(
         (registeredMenu) => registeredMenu.options.identifier === menu
@@ -88,12 +88,16 @@ export default class Menu extends Service {
 
     menu.expanded = false;
 
-    next(() => {
+    await new Promise((resolve) => {
       this.registeredMenus = new TrackedArray(
         this.registeredMenus.filter(
           (registeredMenu) => menu.id !== registeredMenu.id
         )
       );
+
+      schedule("afterRender", () => {
+        resolve();
+      });
     });
   }
 

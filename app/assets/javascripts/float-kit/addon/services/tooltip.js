@@ -1,7 +1,7 @@
 import { tracked } from "@glimmer/tracking";
 import { getOwner } from "@ember/application";
 import { action } from "@ember/object";
-import { next } from "@ember/runloop";
+import { schedule } from "@ember/runloop";
 import Service from "@ember/service";
 import { TrackedArray } from "@ember-compat/tracked-built-ins";
 import DTooltipInstance from "float-kit/lib/d-tooltip-instance";
@@ -75,7 +75,7 @@ export default class Tooltip extends Service {
    * @param {DTooltipInstance} [tooltip] - the tooltip to close, if not provider will close any active tooltip
    */
   @action
-  close(tooltip) {
+  async close(tooltip) {
     if (typeof tooltip === "string") {
       tooltip = this.registeredTooltips.find(
         (registeredTooltip) => registeredTooltip.options.identifier === tooltip
@@ -88,12 +88,16 @@ export default class Tooltip extends Service {
 
     tooltip.expanded = false;
 
-    next(() => {
+    await new Promise((resolve) => {
       this.registeredTooltips = new TrackedArray(
         this.registeredTooltips.filter(
           (registeredTooltips) => tooltip.id !== registeredTooltips.id
         )
       );
+
+      schedule("afterRender", () => {
+        resolve();
+      });
     });
   }
 
