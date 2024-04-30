@@ -37,12 +37,12 @@ export default class DMenuInstance extends FloatKitInstance {
   }
 
   @action
-  close() {
+  async close() {
     if (this.site.mobileView && this.options.modalForMobile) {
       this.modal.close();
     }
 
-    this.menu.close(this);
+    await this.menu.close(this);
 
     super.close(...arguments);
   }
@@ -55,18 +55,18 @@ export default class DMenuInstance extends FloatKitInstance {
   }
 
   @action
-  onMouseMove(event) {
+  async onMouseMove(event) {
     if (this.trigger.contains(event.target) && this.expanded) {
       return;
     }
 
-    this.onTrigger(event);
+    await this.onTrigger(event);
   }
 
   @action
-  onClick(event) {
+  async onClick(event) {
     if (this.expanded && this.untriggers.includes("click")) {
-      this.onUntrigger(event);
+      await this.onUntrigger(event);
       return;
     }
 
@@ -81,9 +81,9 @@ export default class DMenuInstance extends FloatKitInstance {
   }
 
   @action
-  async onTrigger() {
+  onTrigger() {
     this.options.beforeTrigger?.(this);
-    await this.show();
+    this.show();
   }
 
   @action
