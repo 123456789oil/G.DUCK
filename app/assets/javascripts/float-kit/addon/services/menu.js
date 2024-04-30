@@ -94,7 +94,4 @@ export default class Menu extends Service {
       },
     });
   }
-
-  @action
-  registerPortalOutletElement(element, [menu]) {}
 }
