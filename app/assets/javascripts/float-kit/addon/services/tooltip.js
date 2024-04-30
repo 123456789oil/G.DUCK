@@ -52,7 +52,10 @@ export default class Tooltip extends Service {
 
     if (instance.options.identifier) {
       this.registeredTooltips.forEach((tooltip) => {
-        if (tooltip.options.identifier === instance.options.identifier) {
+        if (
+          tooltip.options.identifier === instance.options.identifier &&
+          tooltip !== instance
+        ) {
           this.close(tooltip);
         }
       });

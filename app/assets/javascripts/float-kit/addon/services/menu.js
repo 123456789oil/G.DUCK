@@ -52,7 +52,10 @@ export default class Menu extends Service {
 
     if (instance.options.identifier) {
       this.registeredMenus.forEach((menu) => {
-        if (menu.options.identifier === instance.options.identifier) {
+        if (
+          menu.options.identifier === instance.options.identifier &&
+          menu !== instance
+        ) {
           this.close(menu);
         }
       });
