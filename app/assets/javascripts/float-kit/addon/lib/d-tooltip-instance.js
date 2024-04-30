@@ -42,8 +42,8 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  close() {
-    this.tooltip.close(this);
+  async close() {
+    await this.tooltip.close(this);
 
     super.close(...arguments);
   }
@@ -58,9 +58,9 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  onClick(event) {
+  async onClick(event) {
     if (this.expanded && this.untriggers.includes("click")) {
-      this.onUntrigger(event);
+      await this.onUntrigger(event);
       return;
     }
 
@@ -68,9 +68,9 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  onMouseLeave(event) {
+  async onMouseLeave(event) {
     if (this.untriggers.includes("hover")) {
-      this.onUntrigger(event);
+      await this.onUntrigger(event);
     }
   }
 
@@ -81,13 +81,13 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  onUntrigger() {
-    this.close();
+  async onUntrigger() {
+    await this.close();
   }
 
   @action
-  destroy() {
-    this.close();
+  async destroy() {
+    await this.close();
     this.tearDownListeners();
   }
 }
