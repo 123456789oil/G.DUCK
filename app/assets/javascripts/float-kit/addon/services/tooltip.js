@@ -86,9 +86,11 @@ export default class Tooltip extends Service {
    */
   @action
   register(trigger, options = {}) {
-    return new DTooltipInstance(getOwner(this), trigger, {
+    const instance = new DTooltipInstance(getOwner(this), trigger, {
       ...options,
       listeners: true,
     });
+    instance.detachedTrigger = true;
+    return instance;
   }
 }
