@@ -50,8 +50,19 @@ export default class Tooltip extends Service {
       }
     }
 
+    if (instance.options.identifier) {
+      this.registeredTooltips.forEach((tooltip) => {
+        if (tooltip.options.identifier === instance.options.identifier) {
+          this.close(tooltip);
+        }
+      });
+    }
+
     if (!this.registeredTooltips.includes(instance)) {
       this.registeredTooltips.push(instance);
+    } else if (instance.expanded) {
+      this.close(instance);
+      return;
     }
 
     instance.expanded = true;

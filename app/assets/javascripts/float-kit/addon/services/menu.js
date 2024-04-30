@@ -50,8 +50,19 @@ export default class Menu extends Service {
       }
     }
 
+    if (instance.options.identifier) {
+      this.registeredMenus.forEach((menu) => {
+        if (menu.options.identifier === instance.options.identifier) {
+          this.close(menu);
+        }
+      });
+    }
+
     if (!this.registeredMenus.includes(instance)) {
       this.registeredMenus.push(instance);
+    } else if (instance.expanded) {
+      this.close(instance);
+      return;
     }
 
     instance.expanded = true;
