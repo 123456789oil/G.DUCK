@@ -86,12 +86,11 @@ export default class Menu extends Service {
    */
   @action
   register(trigger, options = {}) {
-    return new DMenuInstance(getOwner(this), trigger, {
+    const instance = new DMenuInstance(getOwner(this), trigger, {
       ...options,
       listeners: true,
-      beforeTrigger: async (menu) => {
-        await this.replace(menu);
-      },
     });
+    instance.detachedTrigger = true;
+    return instance;
   }
 }
