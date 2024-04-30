@@ -13,16 +13,10 @@ function cancelEvent(event) {
 }
 
 export default class FloatKitInstance {
-  @tracked expanded = false;
   @tracked id = null;
-
-  trigger = null;
-  content = null;
 
   @action
   show() {
-    this.expanded = true;
-
     next(() => {
       this.options.onShow?.();
     });
@@ -30,8 +24,6 @@ export default class FloatKitInstance {
 
   @action
   close() {
-    this.expanded = false;
-
     next(() => {
       this.options.onClose?.();
     });
@@ -55,6 +47,14 @@ export default class FloatKitInstance {
   @action
   onFocusOut(event) {
     this.onTrigger(event);
+  }
+
+  @action
+  trapPointerDown(event) {
+    // this is done to avoid trigger on click outside when you click on your own trigger
+    // given trigger and content are not in the same div, we can't just check if target is
+    // inside the menu
+    event.stopPropagation();
   }
 
   @action
@@ -105,7 +105,9 @@ export default class FloatKitInstance {
   }
 
   tearDownListeners() {
-    if (!this.options.listeners) {
+    this.trigger.removeEventListener("pointerdown", this.trapPointerDown);
+
+    if (!this.options?.listeners) {
       return;
     }
 
@@ -141,7 +143,9 @@ export default class FloatKitInstance {
   }
 
   setupListeners() {
-    if (!this.options.listeners) {
+    this.trigger.addEventListener("pointerdown", this.trapPointerDown);
+
+    if (!this.options?.listeners) {
       return;
     }
 

@@ -1,3 +1,4 @@
+import { tracked } from "@glimmer/tracking";
 import { setOwner } from "@ember/application";
 import { action } from "@ember/object";
 import { guidFor } from "@ember/object/internals";
@@ -8,6 +9,21 @@ import FloatKitInstance from "float-kit/lib/float-kit-instance";
 export default class DTooltipInstance extends FloatKitInstance {
   @service tooltip;
 
+  /**
+   * Indicates whether the tooltip is expanded or not.
+   * @property {boolean} expanded - Tracks the state of tooltip expansion, initially set to false.
+   */
+  @tracked expanded = false;
+
+  /**
+   * Specifies whether the trigger for opening/closing the tooltip is detached from the tooltip itself.
+   * This is the case when a tooltip is trigger programmaticaly instead of through the <DTooltip /> component.
+   * @property {boolean} detachedTrigger - Tracks whether the trigger is detached, initially set to false.
+   */
+  @tracked detachedTrigger = false;
+
+  portalOutletElement = document.querySelector("#d-tooltip-portals");
+
   constructor(owner, trigger, options = {}) {
     super(...arguments);
 
@@ -16,6 +32,20 @@ export default class DTooltipInstance extends FloatKitInstance {
     this.id = trigger.id || guidFor(trigger);
     this.trigger = trigger;
     this.setupListeners();
+  }
+
+  @action
+  show() {
+    this.tooltip.show(this);
+
+    super.show(...arguments);
+  }
+
+  @action
+  close() {
+    this.tooltip.close(this);
+
+    super.close(...arguments);
   }
 
   @action
@@ -45,14 +75,14 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  async onTrigger() {
+  onTrigger() {
     this.options.beforeTrigger?.(this);
-    await this.show();
+    this.show();
   }
 
   @action
-  async onUntrigger() {
-    await this.close();
+  onUntrigger() {
+    this.close();
   }
 
   @action

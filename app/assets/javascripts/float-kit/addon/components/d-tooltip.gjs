@@ -2,6 +2,7 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { getOwner } from "@ember/application";
 import { action } from "@ember/object";
+import { next } from "@ember/runloop";
 import { service } from "@ember/service";
 import { modifier } from "ember-modifier";
 import { and } from "truth-helpers";
@@ -21,21 +22,22 @@ export default class DTooltip extends Component {
     const options = {
       ...properties,
       ...{
+        autoUpdate: true,
         listeners: true,
-        beforeTrigger: (instance) => {
-          this.internalTooltip.activeTooltip?.close?.();
-          this.internalTooltip.activeTooltip = instance;
-        },
       },
     };
-    const instance = new DTooltipInstance(getOwner(this), element, options);
 
-    this.tooltipInstance = instance;
-
-    this.options.onRegisterApi?.(instance);
+    next(() => {
+      this.tooltipInstance ??= new DTooltipInstance(
+        getOwner(this),
+        element,
+        options
+      );
+      this.options.onRegisterApi?.(this.tooltipInstance);
+    });
 
     return () => {
-      instance.destroy();
+      this.tooltipInstance?.destroy();
 
       if (this.isDestroying) {
         this.tooltipInstance = null;
@@ -102,7 +104,6 @@ export default class DTooltip extends Component {
         @innerClass="fk-d-tooltip__inner-content"
         @role="tooltip"
         @inline={{this.options.inline}}
-        @portalOutletElement={{this.tooltip.portalOutletElement}}
       >
         {{#if (has-block)}}
           {{yield this.componentArgs}}

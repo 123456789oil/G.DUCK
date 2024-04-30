@@ -1,14 +1,13 @@
 import { tracked } from "@glimmer/tracking";
 import { getOwner } from "@ember/application";
 import { action } from "@ember/object";
-import { guidFor } from "@ember/object/internals";
+import { next } from "@ember/runloop";
 import Service from "@ember/service";
+import { TrackedArray } from "@ember-compat/tracked-built-ins";
 import DMenuInstance from "float-kit/lib/d-menu-instance";
-import { updatePosition } from "float-kit/lib/update-position";
 
 export default class Menu extends Service {
-  @tracked activeMenu;
-  @tracked portalOutletElement;
+  @tracked registeredMenus = new TrackedArray();
 
   /**
    * Render a menu
@@ -34,36 +33,30 @@ export default class Menu extends Service {
     if (arguments[0] instanceof DMenuInstance) {
       instance = arguments[0];
 
-      if (this.activeMenu === instance && this.activeMenu.expanded) {
+      if (instance.expanded) {
         return;
       }
     } else {
-      const trigger = arguments[0];
-      if (
-        this.activeMenu &&
-        this.activeMenu.id ===
-          (trigger?.id?.length ? trigger.id : guidFor(trigger)) &&
-        this.activeMenu.expanded
-      ) {
-        this.activeMenu?.close();
-        return;
+      instance = this.registeredMenus.find(
+        (registeredMenu) => registeredMenu.trigger === arguments[0]
+      );
+      if (!instance) {
+        instance = new DMenuInstance(
+          getOwner(this),
+          arguments[0],
+          arguments[1]
+        );
+        instance.detachedTrigger = true;
       }
-
-      instance = new DMenuInstance(getOwner(this), trigger, arguments[1]);
     }
 
-    await this.replace(instance);
-    instance.expanded = true;
-    return instance;
-  }
+    if (!this.registeredMenus.includes(instance)) {
+      this.registeredMenus.push(instance);
+    }
 
-  /**
-   * Replaces any active menu-
-   */
-  @action
-  async replace(menu) {
-    await this.activeMenu?.close();
-    this.activeMenu = menu;
+    instance.expanded = true;
+
+    return instance;
   }
 
   /**
@@ -71,27 +64,16 @@ export default class Menu extends Service {
    * @param {DMenuInstance} [menu] - the menu to close, if not provider will close any active menu
    */
   @action
-  async close(menu) {
-    if (this.activeMenu && menu && this.activeMenu.id !== menu.id) {
-      return;
-    }
+  close(menu) {
+    menu.expanded = false;
 
-    await this.activeMenu?.close();
-    this.activeMenu = null;
-  }
-
-  /**
-   * Update the menu position
-   * @param {DMenuInstance} [menu] - the menu to update, if not provider will update any active menu
-   */
-  @action
-  async update(menu) {
-    const instance = menu || this.activeMenu;
-    if (!instance) {
-      return;
-    }
-    await updatePosition(instance.trigger, instance.content, instance.options);
-    await instance.show();
+    next(() => {
+      this.registeredMenus = new TrackedArray(
+        this.registeredMenus.filter(
+          (registeredMenu) => menu.id !== registeredMenu.id
+        )
+      );
+    });
   }
 
   /**
@@ -114,7 +96,5 @@ export default class Menu extends Service {
   }
 
   @action
-  registerPortalOutletElement(element) {
-    this.portalOutletElement = element;
-  }
+  registerPortalOutletElement(element, [menu]) {}
 }
