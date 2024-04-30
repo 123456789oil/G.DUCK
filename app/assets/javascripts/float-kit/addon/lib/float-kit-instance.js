@@ -105,7 +105,9 @@ export default class FloatKitInstance {
   }
 
   tearDownListeners() {
-    this.trigger.removeEventListener("pointerdown", this.trapPointerDown);
+    if (typeof this.trigger.addEventListener === "function") {
+      this.trigger.removeEventListener("pointerdown", this.trapPointerDown);
+    }
 
     if (!this.options?.listeners) {
       return;
@@ -143,7 +145,9 @@ export default class FloatKitInstance {
   }
 
   setupListeners() {
-    this.trigger.addEventListener("pointerdown", this.trapPointerDown);
+    if (typeof this.trigger.addEventListener === "function") {
+      this.trigger.addEventListener("pointerdown", this.trapPointerDown);
+    }
 
     if (!this.options?.listeners) {
       return;
