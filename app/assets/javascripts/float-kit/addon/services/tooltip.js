@@ -75,7 +75,17 @@ export default class Tooltip extends Service {
    * @param {DTooltipInstance} [tooltip] - the tooltip to close, if not provider will close any active tooltip
    */
   @action
-  async close(tooltip) {
+  close(tooltip) {
+    if (typeof tooltip === "string") {
+      tooltip = this.registeredTooltips.find(
+        (registeredTooltip) => registeredTooltip.options.identifier === tooltip
+      );
+    }
+
+    if (!tooltip) {
+      return;
+    }
+
     tooltip.expanded = false;
 
     next(() => {

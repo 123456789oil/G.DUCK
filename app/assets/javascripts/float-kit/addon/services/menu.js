@@ -76,6 +76,16 @@ export default class Menu extends Service {
    */
   @action
   close(menu) {
+    if (typeof menu === "string") {
+      menu = this.registeredMenus.find(
+        (registeredMenu) => registeredMenu.options.identifier === menu
+      );
+    }
+
+    if (!menu) {
+      return;
+    }
+
     menu.expanded = false;
 
     next(() => {
