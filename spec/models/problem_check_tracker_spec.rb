@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe ProblemCheckTracker do
+  before { described_class.any_instance.stubs(:check).returns(stub(max_blips: 1, priority: "low")) }
+
   describe "validations" do
     let(:record) { described_class.new(identifier: "twitter_login") }
 
@@ -44,6 +46,50 @@ RSpec.describe ProblemCheckTracker do
     end
   end
 
+  describe "#failing?" do
+    before { freeze_time }
+
+    let(:problem_tracker) { described_class.new(last_problem_at:, last_run_at:, last_success_at:) }
+
+    context "when the last run passed" do
+      let(:last_run_at) { 1.minute.ago }
+      let(:last_success_at) { 1.minute.ago }
+      let(:last_problem_at) { 11.minutes.ago }
+
+      it { expect(problem_tracker).not_to be_failing }
+    end
+
+    context "when the last run had a problem" do
+      let(:last_run_at) { 1.minute.ago }
+      let(:last_success_at) { 11.minutes.ago }
+      let(:last_problem_at) { 1.minute.ago }
+
+      it { expect(problem_tracker).to be_failing }
+    end
+  end
+
+  describe "#passing?" do
+    before { freeze_time }
+
+    let(:problem_tracker) { described_class.new(last_problem_at:, last_run_at:, last_success_at:) }
+
+    context "when the last run passed" do
+      let(:last_run_at) { 1.minute.ago }
+      let(:last_success_at) { 1.minute.ago }
+      let(:last_problem_at) { 11.minutes.ago }
+
+      it { expect(problem_tracker).to be_passing }
+    end
+
+    context "when the last run had a problem" do
+      let(:last_run_at) { 1.minute.ago }
+      let(:last_success_at) { 11.minutes.ago }
+      let(:last_problem_at) { 1.minute.ago }
+
+      it { expect(problem_tracker).not_to be_passing }
+    end
+  end
+
   describe "#problem!" do
     let(:problem_tracker) do
       Fabricate(:problem_check_tracker, identifier: "twitter_login", **original_attributes)
@@ -51,7 +97,7 @@ RSpec.describe ProblemCheckTracker do
 
     let(:original_attributes) do
       {
-        blips: 0,
+        blips:,
         last_problem_at: 1.week.ago,
         last_success_at: 24.hours.ago,
         last_run_at: 24.hours.ago,
@@ -59,6 +105,7 @@ RSpec.describe ProblemCheckTracker do
       }
     end
 
+    let(:blips) { 0 }
     let(:updated_attributes) { { blips: 1 } }
 
     it do
@@ -67,6 +114,26 @@ RSpec.describe ProblemCheckTracker do
       expect { problem_tracker.problem!(next_run_at: 24.hours.from_now) }.to change {
         problem_tracker.attributes
       }.to(hash_including(updated_attributes))
+    end
+
+    context "when the maximum number of blips have been surpassed" do
+      let(:blips) { 1 }
+
+      it "sounds the alarm" do
+        expect { problem_tracker.problem!(next_run_at: 24.hours.from_now) }.to change {
+          AdminNotice.problem.count
+        }.by(1)
+      end
+    end
+
+    context "when there are still blips to go" do
+      let(:blips) { 0 }
+
+      it "does not sound the alarm" do
+        expect { problem_tracker.problem!(next_run_at: 24.hours.from_now) }.not_to change {
+          AdminNotice.problem.count
+        }
+      end
     end
   end
 
@@ -93,6 +160,16 @@ RSpec.describe ProblemCheckTracker do
       expect { problem_tracker.no_problem!(next_run_at: 24.hours.from_now) }.to change {
         problem_tracker.attributes
       }.to(hash_including(updated_attributes))
+    end
+
+    context "when there's an alarm sounding" do
+      before { Fabricate(:admin_notice, subject: "problem", identifier: "twitter_login") }
+
+      it "silences the alarm" do
+        expect { problem_tracker.no_problem!(next_run_at: 24.hours.from_now) }.to change {
+          AdminNotice.problem.count
+        }.by(-1)
+      end
     end
   end
 end

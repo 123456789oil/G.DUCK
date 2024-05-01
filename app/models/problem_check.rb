@@ -1,6 +1,26 @@
 # frozen_string_literal: true
 
 class ProblemCheck
+  class Collection
+    include Enumerable
+
+    def initialize(checks)
+      @checks = checks
+    end
+
+    def each(...)
+      checks.each(...)
+    end
+
+    def run_all
+      each(&:run)
+    end
+
+    private
+
+    attr_reader :checks
+  end
+
   include ActiveSupport::Configurable
 
   config_accessor :priority, default: "low", instance_writer: false
@@ -33,6 +53,7 @@ class ProblemCheck
   # Note: This list must come after the `config_accessor` declarations.
   #
   CORE_PROBLEM_CHECKS = [
+    ProblemCheck::BadFaviconUrl,
     ProblemCheck::EmailPollingErroredRecently,
     ProblemCheck::FacebookConfig,
     ProblemCheck::FailingEmails,
@@ -45,6 +66,8 @@ class ProblemCheck
     ProblemCheck::ImageMagick,
     ProblemCheck::MissingMailgunApiKey,
     ProblemCheck::OutOfDateThemes,
+    ProblemCheck::PollPop3Timeout,
+    ProblemCheck::PollPop3AuthError,
     ProblemCheck::RailsEnv,
     ProblemCheck::Ram,
     ProblemCheck::S3BackupConfig,
@@ -66,15 +89,15 @@ class ProblemCheck
   end
 
   def self.checks
-    CORE_PROBLEM_CHECKS | DiscoursePluginRegistry.problem_checks
+    Collection.new(CORE_PROBLEM_CHECKS | DiscoursePluginRegistry.problem_checks)
   end
 
   def self.scheduled
-    checks.select(&:scheduled?)
+    Collection.new(checks.select(&:scheduled?))
   end
 
   def self.realtime
-    checks.reject(&:scheduled?)
+    Collection.new(checks.select(&:realtime?))
   end
 
   def self.identifier
@@ -96,6 +119,10 @@ class ProblemCheck
     new(data).call
   end
 
+  def self.run(data = {}, &)
+    new(data).run(&)
+  end
+
   def initialize(data = {})
     @data = OpenStruct.new(data)
   end
@@ -106,7 +133,30 @@ class ProblemCheck
     raise NotImplementedError
   end
 
+  def run
+    problems = call
+
+    yield(problems) if block_given?
+
+    next_run_at = perform_every&.from_now
+
+    if problems.empty?
+      tracker.no_problem!(next_run_at:)
+    else
+      tracker.problem!(
+        next_run_at:,
+        details: translation_data.merge(base_path: Discourse.base_path),
+      )
+    end
+
+    problems
+  end
+
   private
+
+  def tracker
+    ProblemCheckTracker[identifier]
+  end
 
   def problem(override_key = nil, override_data = {})
     [
@@ -132,8 +182,7 @@ class ProblemCheck
   end
 
   def translation_key
-    # TODO: Infer a default based on class name, then move translations in locale file.
-    raise NotImplementedError
+    "dashboard.problem.#{identifier}"
   end
 
   def translation_data
