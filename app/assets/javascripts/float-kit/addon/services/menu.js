@@ -1,14 +1,13 @@
 import { tracked } from "@glimmer/tracking";
 import { getOwner } from "@ember/application";
 import { action } from "@ember/object";
-import { guidFor } from "@ember/object/internals";
+import { schedule } from "@ember/runloop";
 import Service from "@ember/service";
+import { TrackedArray } from "@ember-compat/tracked-built-ins";
 import DMenuInstance from "float-kit/lib/d-menu-instance";
-import { updatePosition } from "float-kit/lib/update-position";
 
 export default class Menu extends Service {
-  @tracked activeMenu;
-  @tracked portalOutletElement;
+  @tracked registeredMenus = new TrackedArray();
 
   /**
    * Render a menu
@@ -34,36 +33,44 @@ export default class Menu extends Service {
     if (arguments[0] instanceof DMenuInstance) {
       instance = arguments[0];
 
-      if (this.activeMenu === instance && this.activeMenu.expanded) {
+      if (instance.expanded) {
         return;
       }
     } else {
-      const trigger = arguments[0];
-      if (
-        this.activeMenu &&
-        this.activeMenu.id ===
-          (trigger?.id?.length ? trigger.id : guidFor(trigger)) &&
-        this.activeMenu.expanded
-      ) {
-        this.activeMenu?.close();
-        return;
+      instance = this.registeredMenus.find(
+        (registeredMenu) => registeredMenu.trigger === arguments[0]
+      );
+      if (!instance) {
+        instance = new DMenuInstance(
+          getOwner(this),
+          arguments[0],
+          arguments[1]
+        );
+        instance.detachedTrigger = true;
       }
-
-      instance = new DMenuInstance(getOwner(this), trigger, arguments[1]);
     }
 
-    await this.replace(instance);
-    instance.expanded = true;
-    return instance;
-  }
+    if (instance.options.identifier) {
+      this.registeredMenus.forEach((menu) => {
+        if (
+          menu.options.identifier === instance.options.identifier &&
+          menu !== instance
+        ) {
+          this.close(menu);
+        }
+      });
+    }
 
-  /**
-   * Replaces any active menu-
-   */
-  @action
-  async replace(menu) {
-    await this.activeMenu?.close();
-    this.activeMenu = menu;
+    if (!this.registeredMenus.includes(instance)) {
+      this.registeredMenus.push(instance);
+    } else if (instance.expanded) {
+      this.close(instance);
+      return;
+    }
+
+    instance.expanded = true;
+
+    return instance;
   }
 
   /**
@@ -72,26 +79,29 @@ export default class Menu extends Service {
    */
   @action
   async close(menu) {
-    if (this.activeMenu && menu && this.activeMenu.id !== menu.id) {
+    if (typeof menu === "string") {
+      menu = this.registeredMenus.find(
+        (registeredMenu) => registeredMenu.options.identifier === menu
+      );
+    }
+
+    if (!menu) {
       return;
     }
 
-    await this.activeMenu?.close();
-    this.activeMenu = null;
-  }
+    menu.expanded = false;
 
-  /**
-   * Update the menu position
-   * @param {DMenuInstance} [menu] - the menu to update, if not provider will update any active menu
-   */
-  @action
-  async update(menu) {
-    const instance = menu || this.activeMenu;
-    if (!instance) {
-      return;
-    }
-    await updatePosition(instance.trigger, instance.content, instance.options);
-    await instance.show();
+    await new Promise((resolve) => {
+      this.registeredMenus = new TrackedArray(
+        this.registeredMenus.filter(
+          (registeredMenu) => menu.id !== registeredMenu.id
+        )
+      );
+
+      schedule("afterRender", () => {
+        resolve();
+      });
+    });
   }
 
   /**
@@ -104,17 +114,11 @@ export default class Menu extends Service {
    */
   @action
   register(trigger, options = {}) {
-    return new DMenuInstance(getOwner(this), trigger, {
+    const instance = new DMenuInstance(getOwner(this), trigger, {
       ...options,
       listeners: true,
-      beforeTrigger: async (menu) => {
-        await this.replace(menu);
-      },
     });
-  }
-
-  @action
-  registerPortalOutletElement(element) {
-    this.portalOutletElement = element;
+    instance.detachedTrigger = true;
+    return instance;
   }
 }

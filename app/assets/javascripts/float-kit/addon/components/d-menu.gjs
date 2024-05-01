@@ -3,6 +3,7 @@ import { tracked } from "@glimmer/tracking";
 import { getOwner } from "@ember/application";
 import { concat } from "@ember/helper";
 import { action } from "@ember/object";
+import { next } from "@ember/runloop";
 import { inject as service } from "@ember/service";
 import { modifier } from "ember-modifier";
 import { and } from "truth-helpers";
@@ -26,19 +27,16 @@ export default class DMenu extends Component {
       ...{
         autoUpdate: true,
         listeners: true,
-        beforeTrigger: () => {
-          this.menu.close();
-        },
       },
     };
-    const instance = new DMenuInstance(getOwner(this), element, options);
 
-    this.menuInstance = instance;
-
-    this.options.onRegisterApi?.(this.menuInstance);
+    next(() => {
+      this.menuInstance ??= new DMenuInstance(getOwner(this), element, options);
+      this.options.onRegisterApi?.(this.menuInstance);
+    });
 
     return () => {
-      instance.destroy();
+      this.menuInstance?.destroy();
 
       if (this.isDestroying) {
         this.menuInstance = null;
@@ -126,12 +124,12 @@ export default class DMenu extends Component {
           @trapTab={{this.options.trapTab}}
           @mainClass={{concatClass
             "fk-d-menu"
+            "fk-d-menu__content"
             (concat this.options.identifier "-content")
           }}
           @innerClass="fk-d-menu__inner-content"
           @role="dialog"
           @inline={{this.options.inline}}
-          @portalOutletElement={{this.menu.portalOutletElement}}
         >
           {{#if (has-block)}}
             {{yield this.componentArgs}}

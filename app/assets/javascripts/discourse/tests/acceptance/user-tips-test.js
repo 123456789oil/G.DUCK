@@ -26,6 +26,7 @@ acceptance("User Tips - topic_timeline", function (needs) {
     this.siteSettings.enable_user_tips = true;
 
     await visit("/t/internationalization-localization/280");
+
     assert.equal(
       query(".user-tip__title").textContent.trim(),
       I18n.t("user_tips.topic_timeline.title")

@@ -1,3 +1,4 @@
+import { tracked } from "@glimmer/tracking";
 import { setOwner } from "@ember/application";
 import { action } from "@ember/object";
 import { guidFor } from "@ember/object/internals";
@@ -7,6 +8,21 @@ import FloatKitInstance from "float-kit/lib/float-kit-instance";
 
 export default class DTooltipInstance extends FloatKitInstance {
   @service tooltip;
+
+  /**
+   * Indicates whether the tooltip is expanded or not.
+   * @property {boolean} expanded - Tracks the state of tooltip expansion, initially set to false.
+   */
+  @tracked expanded = false;
+
+  /**
+   * Specifies whether the trigger for opening/closing the tooltip is detached from the tooltip itself.
+   * This is the case when a tooltip is trigger programmaticaly instead of through the <DTooltip /> component.
+   * @property {boolean} detachedTrigger - Tracks whether the trigger is detached, initially set to false.
+   */
+  @tracked detachedTrigger = false;
+
+  portalOutletElement = document.querySelector("#d-tooltip-portals");
 
   constructor(owner, trigger, options = {}) {
     super(...arguments);
@@ -19,6 +35,20 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
+  show() {
+    this.tooltip.show(this);
+
+    super.show(...arguments);
+  }
+
+  @action
+  async close() {
+    await this.tooltip.close(this);
+
+    super.close(...arguments);
+  }
+
+  @action
   onMouseMove(event) {
     if (this.trigger.contains(event.target) && this.expanded) {
       return;
@@ -28,9 +58,9 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  onClick(event) {
+  async onClick(event) {
     if (this.expanded && this.untriggers.includes("click")) {
-      this.onUntrigger(event);
+      await this.onUntrigger(event);
       return;
     }
 
@@ -38,16 +68,16 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  onMouseLeave(event) {
+  async onMouseLeave(event) {
     if (this.untriggers.includes("hover")) {
-      this.onUntrigger(event);
+      await this.onUntrigger(event);
     }
   }
 
   @action
-  async onTrigger() {
+  onTrigger() {
     this.options.beforeTrigger?.(this);
-    await this.show();
+    this.show();
   }
 
   @action
@@ -56,8 +86,8 @@ export default class DTooltipInstance extends FloatKitInstance {
   }
 
   @action
-  destroy() {
-    this.close();
+  async destroy() {
+    await this.close();
     this.tearDownListeners();
   }
 }

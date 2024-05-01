@@ -1,3 +1,4 @@
+import { tracked } from "@glimmer/tracking";
 import { setOwner } from "@ember/application";
 import { action } from "@ember/object";
 import { guidFor } from "@ember/object/internals";
@@ -10,6 +11,21 @@ export default class DMenuInstance extends FloatKitInstance {
   @service site;
   @service modal;
 
+  /**
+   * Indicates whether the menu is expanded or not.
+   * @property {boolean} expanded - Tracks the state of menu expansion, initially set to false.
+   */
+  @tracked expanded = false;
+
+  /**
+   * Specifies whether the trigger for opening/closing the menu is detached from the menu itself.
+   * This is the case when a menu is trigger programmaticaly instead of through the <DMenu /> component.
+   * @property {boolean} detachedTrigger - Tracks whether the trigger is detached, initially set to false.
+   */
+  @tracked detachedTrigger = false;
+
+  portalOutletElement = document.querySelector("#d-menu-portals");
+
   constructor(owner, trigger, options = {}) {
     super(...arguments);
 
@@ -21,27 +37,36 @@ export default class DMenuInstance extends FloatKitInstance {
   }
 
   @action
-  close() {
+  async close() {
     if (this.site.mobileView && this.options.modalForMobile) {
       this.modal.close();
     }
+
+    await this.menu.close(this);
 
     super.close(...arguments);
   }
 
   @action
-  onMouseMove(event) {
+  show() {
+    this.menu.show(this);
+
+    super.show(...arguments);
+  }
+
+  @action
+  async onMouseMove(event) {
     if (this.trigger.contains(event.target) && this.expanded) {
       return;
     }
 
-    this.onTrigger(event);
+    await this.onTrigger(event);
   }
 
   @action
-  onClick(event) {
+  async onClick(event) {
     if (this.expanded && this.untriggers.includes("click")) {
-      this.onUntrigger(event);
+      await this.onUntrigger(event);
       return;
     }
 
@@ -56,9 +81,9 @@ export default class DMenuInstance extends FloatKitInstance {
   }
 
   @action
-  async onTrigger() {
+  onTrigger() {
     this.options.beforeTrigger?.(this);
-    await this.show();
+    this.show();
   }
 
   @action
