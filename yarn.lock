@@ -1163,17 +1163,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.1.2", "@babel/runtime@^7.24.4":
+"@babel/runtime@^7.1.2", "@babel/runtime@^7.14.0", "@babel/runtime@^7.18.6", "@babel/runtime@^7.21.0", "@babel/runtime@^7.24.4", "@babel/runtime@^7.8.4":
   version "7.24.4"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.4.tgz#de795accd698007a66ba44add6cc86542aff1edd"
   integrity sha512-dkxf7+hn8mFBwKjs9bvBlArzLVxVbS8usaPUDd5p2a9JCL9tB8OaOVN1isD4+Xyk4ns89/xeOmbQvgdK7IIVdA==
-  dependencies:
-    regenerator-runtime "^0.14.0"
-
-"@babel/runtime@^7.14.0", "@babel/runtime@^7.18.6", "@babel/runtime@^7.21.0", "@babel/runtime@^7.8.4":
-  version "7.23.2"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.23.2.tgz#062b0ac103261d68a966c4c7baf2ae3e62ec3885"
-  integrity sha512-mM8eg4yl5D6i3lu2QKPuPH4FArvJ8KhTofbE7jwMUv9KX5mBvwPAqnV3MlyBNqdp9RyRKP6Yck8TrfYrPvX3bg==
   dependencies:
     regenerator-runtime "^0.14.0"
 
@@ -1248,10 +1241,10 @@
   resolved "https://registry.yarnpkg.com/@discourse/backburner.js/-/backburner.js-2.7.1-0.tgz#0fc5f93c8f3ee013af2beed55d30ff10362d8f06"
   integrity sha512-r0cjllX/niPSxot/lpz0Tj9CXmyYoFE6kvEN9oL0D0sOGpknmK9FielZqcPGxuD/Z8vOb67penUElHRjH+F4cQ==
 
-"@discourse/ember-instantsearch@^1.0.9":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@discourse/ember-instantsearch/-/ember-instantsearch-1.0.9.tgz#daabf774096aff9630db893ce247102809608c52"
-  integrity sha512-hGZoc6AdmY45fQn/h4I4QaXPjoO9Ac3RFRLAZ6tAfF7w7DeDuYmi0PgPVwb5dLp6v29IU/kqF+Bo/TB5eCLkeA==
+"@discourse/ember-instantsearch@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@discourse/ember-instantsearch/-/ember-instantsearch-1.1.2.tgz#68b2d6bd78c3910817938817e3af61a83922ea91"
+  integrity sha512-zCVfrz1QVjQXz2I8RDFjqqhLdis6OPsQ7kfY9kU9LtXaYQg9VNyxYYlDaeArJPnHWy4G5pxkWYetgoD67s+gbw==
   dependencies:
     "@babel/runtime" "^7.24.4"
     "@ember/render-modifiers" "^2.1.0"
